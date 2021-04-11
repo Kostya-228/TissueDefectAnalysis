@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using OpenCvSharp;
 
 namespace ConsoleApp
 {
@@ -15,9 +16,11 @@ namespace ConsoleApp
         static void Main(string[] args)
         {
 
-            //var files = Directory.GetFiles(ImagesRoot);
-            //FileStream stream = new FileStream(files[0], FileMode.Open, FileAccess.Read);
-            ImageProcessing.Test();
+            var files = Directory.GetFiles(ImagesRoot);
+            var src = new Mat(files[0], ImreadModes.Grayscale);
+
+            int A = 2, B = 1, count = 6;
+            new ImageProcessing().Test(src, A, B, count);
             Console.ReadLine();
         }
     }
