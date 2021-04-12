@@ -15,7 +15,9 @@ namespace ConsoleApp
 
         static void Main(string[] args)
         {
-
+            DBConnector.Test();
+            Console.ReadLine();
+            return;
             var files = Directory.GetFiles(ImagesRoot);
             var src = new Mat(files[0], ImreadModes.Grayscale);
 

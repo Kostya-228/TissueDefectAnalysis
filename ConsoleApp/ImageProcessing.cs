@@ -11,7 +11,7 @@ namespace ConsoleApp
         uint all_possible_variants;
         List<uint> uniform_patterns;
         List<uint> uniform_patterns_extend;
-        int[,] positions;
+        int[,] lbp_positions;
 
         public void Test(Mat src, int A = 2, int B = 1, int count = 6)
         {
@@ -31,7 +31,7 @@ namespace ConsoleApp
             uniform_patterns_extend.Add(all_possible_variants+1);
 
             // позиции точек
-            positions = CalcPositions(A, B, count);
+            lbp_positions = CalcPositions(A, B, count);
 
             for (int i = offset_h; i < src.Size().Height - 1 - offset_h; i+=15)
             {
@@ -85,9 +85,9 @@ namespace ConsoleApp
         {
             string result = "";
             var threshold = CalcLight(indexer[x, y]);
-            for(int i=0; i < positions.GetLength(0); i++)
+            for(int i=0; i < lbp_positions.GetLength(0); i++)
             {
-                result += (CalcLight(indexer[x + positions[i,0], y + positions[i, 1]]) >= threshold) ? "1" : "0";
+                result += (CalcLight(indexer[x + lbp_positions[i,0], y + lbp_positions[i, 1]]) >= threshold) ? "1" : "0";
             }
             return result;
         }
