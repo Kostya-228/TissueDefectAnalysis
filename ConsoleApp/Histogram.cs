@@ -30,6 +30,16 @@ namespace ConsoleApp
                 histogram[key] = 1;
         }
 
+        public int Distanse(Histogram<T> other)
+        {
+            int diff = 0;
+            foreach(var key in histogram.Keys)
+            {
+                diff += (int)Math.Pow(histogram[key] - other.histogram[key], 2) / (histogram[key] + other.histogram[key]);
+            }
+            return diff;
+        }
+
         /// <summary>
         /// Печать гистограммы в консоли
         /// </summary>
@@ -37,7 +47,7 @@ namespace ConsoleApp
         {
             foreach (KeyValuePair<T, int> pair in histogram)
             {
-                Console.Write("{1, 2} ", pair.Key, pair.Value);
+                Console.Write("{1, 4} ", pair.Key, pair.Value);
             }
             Console.WriteLine();
         }

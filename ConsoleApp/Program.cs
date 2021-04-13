@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using OpenCvSharp;
+using System.Data;
+using System.Data.Linq;
 
 namespace ConsoleApp
 {
@@ -15,14 +17,31 @@ namespace ConsoleApp
 
         static void Main(string[] args)
         {
-            DBConnector.Test();
-            Console.ReadLine();
-            return;
-            var files = Directory.GetFiles(ImagesRoot);
-            var src = new Mat(files[0], ImreadModes.Grayscale);
+            string file_name = DBConnector.GetImageFiles().First().FileName;
+            List<ImageArea> areas = DBConnector.GetImageAreas(file_name);
 
-            int A = 2, B = 1, count = 6;
-            new ImageProcessing().Test(src, A, B, count);
+            var src = new Mat($"{ImagesRoot}\\{file_name}", ImreadModes.Grayscale);
+            var indexer = src.GetGenericIndexer<Vec3b>();
+
+            int A = DBConnector.GetParam("A").Min + 1,
+                B = DBConnector.GetParam("B").Min, 
+                count = DBConnector.GetParam("count").Min;
+
+            Console.WriteLine($"{A} {B} {count}");
+            var lbp = new ImageProcessing(A, B, count);
+
+            List<Histogram<uint>> histogramm_list = new List<Histogram<uint>>();
+            foreach (ImageArea row in areas)
+            {
+                histogramm_list.Add(lbp.CalcHistogramForArea(row.X1, row.Y1, row.h, row.w, indexer));
+            }
+
+            foreach (Histogram<uint> histogram in histogramm_list)
+            {
+                histogram.Print();
+                Console.WriteLine(histogram.Distanse(histogramm_list[10]));
+            }
+            Console.WriteLine($"все");
             Console.ReadLine();
         }
     }

@@ -7,44 +7,49 @@ namespace ConsoleApp
 {
     class ImageProcessing
     {
-        Mat.Indexer<Vec3b> indexer;
+        //Mat.Indexer<Vec3b> indexer;
         uint all_possible_variants;
         List<uint> uniform_patterns;
         List<uint> uniform_patterns_extend;
         int[,] lbp_positions;
 
-        public void Test(Mat src, int A = 2, int B = 1, int count = 6)
+        int A;
+        int B;
+
+        public ImageProcessing(int A = 2, int B = 1, int count = 6)
         {
-            // для более быстрого лоступа к пикселям используем индексатор
-            indexer = src.GetGenericIndexer<Vec3b>();
-
-
-            int offset_h = B;
-            int offset_w = A;
-            
-            // определяем все возможные варианты кода LBP
+            this.A = A;
+            this.B = B;
             this.all_possible_variants = (uint)Math.Pow(2, count);
             // варианты uniform_patterns
             this.uniform_patterns = CalcUniformPatterns(all_possible_variants);
             // варианты uniform_patterns + один столбик на не uniform_patterns
             uniform_patterns_extend = uniform_patterns.Select(item => item).ToList();
-            uniform_patterns_extend.Add(all_possible_variants+1);
+            uniform_patterns_extend.Add(all_possible_variants + 1);
 
             // позиции точек
             lbp_positions = CalcPositions(A, B, count);
+        }
+
+        public void Test(Mat src)
+        {
+            // для более быстрого лоступа к пикселям используем индексатор
+            var indexer = src.GetGenericIndexer<Vec3b>();
+
+
+            int offset_h = B;
+            int offset_w = A;
 
             for (int i = offset_h; i < src.Size().Height - 1 - offset_h; i+=15)
             {
                 for (int j = offset_w; j < src.Size().Width - 1 - offset_w; j+=15)
                 {
-                    var histogram = CalcHistogramForArea(i, j, 15, 15);
+                    var histogram = CalcHistogramForArea(i, j, 15, 15, indexer);
                     histogram.Print();
                 }
                 Console.WriteLine();
             }
-
             Console.WriteLine("ready");
-
         }
 
         /// <summary>
@@ -55,14 +60,22 @@ namespace ConsoleApp
         /// <param name="h">высота зоны</param>
         /// <param name="w">ширина зоны</param>
         /// <returns></returns>
-        private Histogram<uint> CalcHistogramForArea(int x, int y, int h, int w)
+        public Histogram<uint> CalcHistogramForArea(int x, int y, int h, int w, Mat.Indexer<Vec3b> indexer)
         {
             var histogram = new Histogram<uint>(uniform_patterns_extend);
             for (int i = x; i < x+h; i++)
             {
+                if (i < A)
+                    continue;
+                if (i >= x + h - A)
+                    continue;
                 for (int j = y; j < y+w; j++)
                 {
-                    string binary_code = CalcPixelLBPCode(i, j);
+                    if (j < B)
+                        continue;
+                    if (j >= y + w - B)
+                        continue;
+                    string binary_code = CalcPixelLBPCode(i, j, indexer);
                     uint decimal_code = (uint)Convert.ToInt32(binary_code, 2);
                     if (!uniform_patterns.Contains(decimal_code))
                         histogram.Add(all_possible_variants + 1);
@@ -81,13 +94,14 @@ namespace ConsoleApp
         /// <param name="y">позиция y</param>
         /// <param name="positions">позиции точек, по которым считать LBP код</param>
         /// <returns></returns>
-        private string CalcPixelLBPCode(int x, int y)
+        private string CalcPixelLBPCode(int x, int y, Mat.Indexer<Vec3b> indexer)
         {
             string result = "";
-            var threshold = CalcLight(indexer[x, y]);
+            var threshold = CalcLight(indexer[y, x]);
             for(int i=0; i < lbp_positions.GetLength(0); i++)
             {
-                result += (CalcLight(indexer[x + lbp_positions[i,0], y + lbp_positions[i, 1]]) >= threshold) ? "1" : "0";
+                int a = x + lbp_positions[i, 0], b = y + lbp_positions[i, 1];
+                result += (CalcLight(indexer[b, a]) >= threshold) ? "1" : "0";
             }
             return result;
         }
