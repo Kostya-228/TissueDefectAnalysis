@@ -87,6 +87,8 @@
     </Compile>
     <Compile Include="DBConnector.cs" />
     <Compile Include="Histogram.cs" />
+    <Compile Include="ImageArea.cs" />
+    <Compile Include="ImageFile.cs" />
     <Compile Include="ImageProcessing.cs" />
     <Compile Include="Param.cs" />
     <Compile Include="Program.cs" />

@@ -11,7 +11,7 @@ namespace ConsoleApp
     [Table(Name = "Параметры")]
     public class Param
     {
-        [Column(Name = "Код параметра", IsPrimaryKey = true, IsDbGenerated = true)]
+        [Column(Name = "Код параметра", IsPrimaryKey = true)]
         public string Code { get; set; }
 
         [Column(Name = "Наименование")]

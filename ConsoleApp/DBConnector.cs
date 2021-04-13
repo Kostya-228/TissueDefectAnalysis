@@ -17,54 +17,33 @@ namespace ConsoleApp
         private static string conn_str = ConsoleApp.Properties.Settings.Default.ConnectionString;
 
 
-        public static void GetParam(string Name)
+        public static Param GetParam(string Name)
         {
             using (OleDbConnection connection = new OleDbConnection(conn_str))
             {
                 DataContext db = new DataContext(connection);
                 Table<Param> params_ = db.GetTable<Param>();
-                Param a = params_.ToList().First(par => par.Name == "B");
+                return params_.ToList().First(par => par.Name == Name);
             }
         }
 
-        public static void Test()
+        public static List<ImageArea> GetImageAreas(string fileName)
         {
-            OleDbConnection connection = new OleDbConnection(conn_str);
-            DataContext db = new DataContext(connection);
-            Table<Param> params_ = db.GetTable<Param>();
-            Param a = params_.ToList().First(par => par.Name == "B");
-
-            Console.WriteLine($"{a.Name} {a.Min} {a.Max} {a.Step}");
-
-            //foreach (var user in params_)
-            //{
-            //    Console.WriteLine("{0} \t{1} \t{2}", user.Min, user.Max, user.Step);
-            //}
-        }
-
-        public static DataTable GetImageAreas()
-        {
-            var ds = RunSelect("Select * From `Область изображение`");
-            return ds.Tables[0];
-        }
-
-        public static DataSet GetParams()
-        {
-            return RunSelect("Select * From `Параметры`");
-            //return ds.Tables[0];
-        }
-
-        public static DataSet RunSelect(string cmd)
-        {
-            using (OleDbConnection connection = new OleDbConnection(ConsoleApp.Properties.Settings.Default.ConnectionString))
+            using (OleDbConnection connection = new OleDbConnection(conn_str))
             {
-                OleDbCommand command = new OleDbCommand(cmd);
-                command.Connection = connection;
-                connection.Open();
-                OleDbDataAdapter adapter = new OleDbDataAdapter(cmd, connection);
-                DataSet ds = new DataSet();
-                adapter.Fill(ds);
-                return ds;
+                DataContext db = new DataContext(connection);
+                Table<ImageArea> params_ = db.GetTable<ImageArea>();
+                return params_.Where(area => area.FileName == fileName).ToList();
+            }
+        }
+
+        public static List<ImageFile> GetImageFiles()
+        {
+            using (OleDbConnection connection = new OleDbConnection(conn_str))
+            {
+                DataContext db = new DataContext(connection);
+                Table<ImageFile> files = db.GetTable<ImageFile>();
+                return files.ToList();
             }
         }
     }
