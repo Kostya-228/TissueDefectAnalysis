@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ConsoleApp
 {
-    class ImageProcessing
+    public class LBPProcessor
     {
         //Mat.Indexer<Vec3b> indexer;
         uint all_possible_variants;
@@ -16,7 +16,7 @@ namespace ConsoleApp
         int A;
         int B;
 
-        public ImageProcessing(int A = 2, int B = 1, int count = 6)
+        public LBPProcessor(int A = 2, int B = 1, int count = 6)
         {
             this.A = A;
             this.B = B;

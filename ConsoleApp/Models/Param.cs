@@ -6,10 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 
-namespace ConsoleApp
+namespace ConsoleApp.Models
 {
     [Table(Name = "Параметры")]
-    public class Param
+    public class Param: AccessModelProxy
     {
         [Column(Name = "Код параметра", IsPrimaryKey = true)]
         public string Code { get; set; }

@@ -87,10 +87,12 @@
     </Compile>
     <Compile Include="DBConnector.cs" />
     <Compile Include="Histogram.cs" />
-    <Compile Include="ImageArea.cs" />
-    <Compile Include="ImageFile.cs" />
-    <Compile Include="ImageProcessing.cs" />
-    <Compile Include="Param.cs" />
+    <Compile Include="LBP\LBPRarams.cs" />
+    <Compile Include="Models\AccessModelProxy.cs" />
+    <Compile Include="Models\ImageArea.cs" />
+    <Compile Include="Models\ImageFile.cs" />
+    <Compile Include="LBP\LBPProcessor.cs" />
+    <Compile Include="Models\Param.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -98,6 +100,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Utils\DataSetDBPreparing.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp
 {
-    class Histogram<T>
+    public class Histogram<T>
     {
         public SortedDictionary<T, int> histogram { get; private set; }
 

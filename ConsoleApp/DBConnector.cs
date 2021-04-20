@@ -8,18 +8,25 @@ using System.Data.SqlClient;
 using System.Data.OleDb;
 using System.Data;
 using System.Data.Linq;
+using ConsoleApp.Models;
 
 namespace ConsoleApp
 {
-    class DBConnector
+    public class DBConnector
     {
 
-        private static string conn_str = ConsoleApp.Properties.Settings.Default.ConnectionString;
+        public static string conn_str = ConsoleApp.Properties.Settings.Default.ConnectionString;
+
+
+        public static OleDbConnection GetConnection()
+        {
+            return new OleDbConnection(conn_str);
+        }
 
 
         public static Param GetParam(string Name)
         {
-            using (OleDbConnection connection = new OleDbConnection(conn_str))
+            using (OleDbConnection connection = GetConnection())
             {
                 DataContext db = new DataContext(connection);
                 Table<Param> params_ = db.GetTable<Param>();
@@ -27,23 +34,38 @@ namespace ConsoleApp
             }
         }
 
-        public static List<ImageArea> GetImageAreas(string fileName)
+        public static List<T> GetList<T>() where T : class
         {
-            using (OleDbConnection connection = new OleDbConnection(conn_str))
+            using (OleDbConnection connection = GetConnection())
             {
                 DataContext db = new DataContext(connection);
-                Table<ImageArea> params_ = db.GetTable<ImageArea>();
-                return params_.Where(area => area.FileName == fileName).ToList();
+                Table<T> table = db.GetTable<T>();
+                return table.ToList();
             }
         }
 
-        public static List<ImageFile> GetImageFiles()
+        public static void CreateList<T>(IEnumerable<T> items) where T : class
         {
-            using (OleDbConnection connection = new OleDbConnection(conn_str))
+            using (OleDbConnection connection = GetConnection())
             {
                 DataContext db = new DataContext(connection);
-                Table<ImageFile> files = db.GetTable<ImageFile>();
-                return files.ToList();
+                foreach (var item in items)
+                {
+                    db.GetTable<T>().InsertOnSubmit(item);
+                }
+                db.SubmitChanges();
+            }
+        }
+
+        public static void UpdateList<T>(IEnumerable<T> items) where T : AccessModelProxy
+        {
+            using (OleDbConnection connection = GetConnection())
+            {
+                connection.Open();
+                foreach (AccessModelProxy item in items)
+                {
+                    item.Update(connection);
+                }
             }
         }
     }
