@@ -54,16 +54,36 @@ namespace PrepareDataSet
             int w_c = pictureBox1.Width;
             int h_c = pictureBox1.Height;
 
-            // horizontal image
-            float scaleFactor = w_c / (float)w_i;
-            float scaledHeight = h_i * scaleFactor;
-            // calculate gap between top of container and top of image
-            float filler = Math.Abs(h_c - scaledHeight) / 2;
-            unscaled_p.X = (int)(p.X * scaleFactor);
-            unscaled_p.Y = (int)((p.Y * scaleFactor + filler));
+            float imageRatio = w_i / (float)h_i; // image W:H ratio
+            float containerRatio = w_c / (float)h_c; // container W:H ratio
 
-            size.Width = (int)(area.w * scaleFactor);
-            size.Height = (int)((area.h * scaleFactor));
+            if (imageRatio >= containerRatio)
+            {
+                // horizontal image
+                float scaleFactor = w_c / (float)w_i;
+                float scaledHeight = h_i * scaleFactor;
+                // calculate gap between top of container and top of image
+                float filler = Math.Abs(h_c - scaledHeight) / 2;
+                unscaled_p.X = (int)(p.X * scaleFactor);
+                unscaled_p.Y = (int)((p.Y * scaleFactor + filler));
+
+                size.Width = (int)(area.w * scaleFactor);
+                size.Height = (int)((area.h * scaleFactor));
+            }
+            else
+            {
+                // vertical image
+                float scaleFactor = h_c / (float)h_i;
+                float scaledWidth = w_i * scaleFactor;
+                float filler = Math.Abs(w_c - scaledWidth) / 2;
+                unscaled_p.X = (int)(p.X * scaleFactor + filler);
+                unscaled_p.Y = (int)(p.Y * scaleFactor);
+
+                size.Width = (int)(area.w * scaleFactor);
+                size.Height = (int)((area.h * scaleFactor));
+            }
+
+            
 
             return new Rectangle(unscaled_p, size);
         }

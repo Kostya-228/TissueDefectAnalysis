@@ -23,7 +23,6 @@ namespace ConsoleApp
             return new OleDbConnection(conn_str);
         }
 
-
         public static Param GetParam(string Name)
         {
             using (OleDbConnection connection = GetConnection())
@@ -53,6 +52,16 @@ namespace ConsoleApp
                 {
                     db.GetTable<T>().InsertOnSubmit(item);
                 }
+                db.SubmitChanges();
+            }
+        }
+
+        public static void CreateItem<T>(T item) where T : class
+        {
+            using (OleDbConnection connection = GetConnection())
+            {
+                DataContext db = new DataContext(connection);
+                db.GetTable<T>().InsertOnSubmit(item);
                 db.SubmitChanges();
             }
         }

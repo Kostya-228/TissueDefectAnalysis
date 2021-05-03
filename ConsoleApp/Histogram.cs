@@ -35,7 +35,9 @@ namespace ConsoleApp
             int diff = 0;
             foreach(var key in histogram.Keys)
             {
-                diff += (int)Math.Pow(histogram[key] - other.histogram[key], 2) / (histogram[key] + other.histogram[key]);
+                var i = (histogram[key] + other.histogram[key]);
+                if (i != 0)
+                    diff += (int)Math.Pow(histogram[key] - other.histogram[key], 2) / i;
             }
             return diff;
         }
@@ -50,6 +52,20 @@ namespace ConsoleApp
                 Console.Write("{1, 4} ", pair.Key, pair.Value);
             }
             Console.WriteLine();
+        }
+    }
+
+    public class RGBHistogramm<T>
+    {
+        public Histogram<T> R;
+        public Histogram<T> G;
+        public Histogram<T> B;
+
+        public RGBHistogramm(List<T> variants)
+        {
+            R = new Histogram<T>(variants);
+            G = new Histogram<T>(variants);
+            B = new Histogram<T>(variants);
         }
     }
 }

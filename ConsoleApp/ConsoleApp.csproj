@@ -89,6 +89,10 @@
     <Compile Include="Histogram.cs" />
     <Compile Include="LBP\LBPRarams.cs" />
     <Compile Include="Models\AccessModelProxy.cs" />
+    <Compile Include="Models\ClothPattern.cs" />
+    <Compile Include="Models\Experement.cs" />
+    <Compile Include="Models\ExperimentPlan.cs" />
+    <Compile Include="Models\ExperimentResult.cs" />
     <Compile Include="Models\ImageArea.cs" />
     <Compile Include="Models\ImageFile.cs" />
     <Compile Include="LBP\LBPProcessor.cs" />

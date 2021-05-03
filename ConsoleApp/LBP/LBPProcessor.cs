@@ -31,26 +31,26 @@ namespace ConsoleApp
             lbp_positions = CalcPositions(A, B, count);
         }
 
-        public void Test(Mat src)
-        {
-            // для более быстрого лоступа к пикселям используем индексатор
-            var indexer = src.GetGenericIndexer<Vec3b>();
+        //public void Test(Mat src)
+        //{
+        //    // для более быстрого лоступа к пикселям используем индексатор
+        //    var indexer = src.GetGenericIndexer<Vec3b>();
 
 
-            int offset_h = B;
-            int offset_w = A;
+        //    int offset_h = B;
+        //    int offset_w = A;
 
-            for (int i = offset_h; i < src.Size().Height - 1 - offset_h; i+=15)
-            {
-                for (int j = offset_w; j < src.Size().Width - 1 - offset_w; j+=15)
-                {
-                    var histogram = CalcHistogramForArea(i, j, 15, 15, indexer);
-                    histogram.Print();
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine("ready");
-        }
+        //    for (int i = offset_h; i < src.Size().Height - 1 - offset_h; i+=15)
+        //    {
+        //        for (int j = offset_w; j < src.Size().Width - 1 - offset_w; j+=15)
+        //        {
+        //            var histogram = CalcHistogramForArea(i, j, 15, 15, indexer);
+        //            histogram.Print();
+        //        }
+        //        Console.WriteLine();
+        //    }
+        //    Console.WriteLine("ready");
+        //}
 
         /// <summary>
         /// Подсчет гистограммы област
@@ -60,9 +60,9 @@ namespace ConsoleApp
         /// <param name="h">высота зоны</param>
         /// <param name="w">ширина зоны</param>
         /// <returns></returns>
-        public Histogram<uint> CalcHistogramForArea(int x, int y, int h, int w, Mat.Indexer<Vec3b> indexer)
+        public RGBHistogramm<uint> CalcHistogramForArea(int x, int y, int h, int w, Mat.Indexer<Vec3b> indexer)
         {
-            var histogram = new Histogram<uint>(uniform_patterns_extend);
+            var rgbHistogramm = new RGBHistogramm<uint>(uniform_patterns_extend);
             for (int i = x; i < x+h; i++)
             {
                 if (i < A)
@@ -75,15 +75,21 @@ namespace ConsoleApp
                         continue;
                     if (j >= y + w - B)
                         continue;
-                    string binary_code = CalcPixelLBPCode(i, j, indexer);
-                    uint decimal_code = (uint)Convert.ToInt32(binary_code, 2);
-                    if (!uniform_patterns.Contains(decimal_code))
-                        histogram.Add(all_possible_variants + 1);
-                    else
-                        histogram.Add(decimal_code);
+                    rgbHistogramm.R.Add(BinaryCodeToValue(CalcPixelLBPCode(i, j, indexer, 'R')));
+                    rgbHistogramm.G.Add(BinaryCodeToValue(CalcPixelLBPCode(i, j, indexer, 'G')));
+                    rgbHistogramm.B.Add(BinaryCodeToValue(CalcPixelLBPCode(i, j, indexer, 'B')));
                 }
             }
-            return histogram;
+            return rgbHistogramm;
+        }
+
+        private uint BinaryCodeToValue(string binary_code)
+        {
+            uint decimal_code = (uint)Convert.ToInt32(binary_code, 2);
+            if (!uniform_patterns.Contains(decimal_code))
+                return all_possible_variants + 1;
+            else
+                return decimal_code;
         }
 
         /// <summary>
@@ -94,14 +100,23 @@ namespace ConsoleApp
         /// <param name="y">позиция y</param>
         /// <param name="positions">позиции точек, по которым считать LBP код</param>
         /// <returns></returns>
-        private string CalcPixelLBPCode(int x, int y, Mat.Indexer<Vec3b> indexer)
+        private string CalcPixelLBPCode(int x, int y, Mat.Indexer<Vec3b> indexer, char color)
         {
             string result = "";
-            var threshold = CalcLight(indexer[y, x]);
+            byte threshold;
             for(int i=0; i < lbp_positions.GetLength(0); i++)
             {
                 int a = x + lbp_positions[i, 0], b = y + lbp_positions[i, 1];
-                result += (CalcLight(indexer[b, a]) >= threshold) ? "1" : "0";
+                var c = indexer[b, a];
+                byte value;
+                switch(color)
+                {
+                    case 'R': value = c.Item0; threshold = indexer[y, x].Item0; break;
+                    case 'G': value = c.Item1; threshold = indexer[y, x].Item1; break;
+                    case 'B': value = c.Item2; threshold = indexer[y, x].Item2; break;
+                    default: throw new Exception($"a valid not color ({color})");
+                }
+                result += (value >= threshold) ? "1" : "0";
             }
             return result;
         }

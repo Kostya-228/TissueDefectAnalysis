@@ -26,7 +26,9 @@ namespace ConsoleApp.Models
         [Column(Name = "Шаг")]
         public int Step { get; set; }
 
-        private IEnumerable<int> AsEnumerable()
+        public int count { get { return (Max - Min) / Step;  } }
+
+        public IEnumerable<int> AsEnumerable()
         {
             int x = Min;
             do

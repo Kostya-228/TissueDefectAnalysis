@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "ConsoleApp\Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrepareDataSet", "PrepareDataSet\PrepareDataSet.csproj", "{ECBFA78A-7E33-4981-A893-0E46CA8B4D2F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawExperiment", "DrawExperiment\DrawExperiment.csproj", "{E669D74A-9903-4341-9764-297CB8366AB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{ECBFA78A-7E33-4981-A893-0E46CA8B4D2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECBFA78A-7E33-4981-A893-0E46CA8B4D2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECBFA78A-7E33-4981-A893-0E46CA8B4D2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E669D74A-9903-4341-9764-297CB8366AB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E669D74A-9903-4341-9764-297CB8366AB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E669D74A-9903-4341-9764-297CB8366AB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E669D74A-9903-4341-9764-297CB8366AB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

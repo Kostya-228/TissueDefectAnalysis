@@ -9,94 +9,97 @@ using System.Data;
 using System.Data.Linq;
 using ConsoleApp.Models;
 using ConsoleApp.Utils;
+using System.Data.OleDb;
 
 namespace ConsoleApp
 {
     public class Program
     {
         public static string ProjectRoot = Directory.GetParent("./../..").FullName;
-        public static string ImagesRoot = $"{ProjectRoot}\\Defect_images";
+        public static string ImagesRoot = $"{ProjectRoot}\\Defect_images_2\\1";
 
         static void Main(string[] args)
         {
-            //DataSetDBPreparing.SaveImgsFromFolderToDB(ImagesRoot);
-            //DataSetDBPreparing.SaveAreasFromImages();
-            Console.WriteLine(DBConnector.GetList<ImageArea>().First().GenerateUpdateSql());
-            Console.WriteLine("all");
-            Console.ReadKey();
-            return;
-
-            //ImageFile file = new ImageFile() { FileName = "ls", Height = 23, Width = "sdsd", PatternId = 1 };
-            ////file.Create(DBConnector.GetConnection());
-
-            //foreach (var i in DBConnector.GetImageFiles())
-            //    Console.WriteLine(i.FileName);
-            //Console.WriteLine("sdc");
-            //Console.ReadKey();
-
-
+            //DBConnector.CreateItem(new ClothPattern() { Id = 1, Height = 256, Width = 4096, Name = "Хлопок_1" });
+            //Utils.DataSetDBPreparing.SaveImgsFromFolderToDB(ImagesRoot);
+            //Utils.DataSetDBPreparing.SaveAreasFromImages(32);
             //return;
-            using (var conn = DBConnector.GetConnection())
-            {
-                DataContext db = new DataContext(conn);
 
-                ImageFile file = new ImageFile() { FileName = "ls", Height = 23, Width = "sdsd", PatternId = 1 };
-                //db.GetTable<ImageFile>().InsertOnSubmit(file);
-                //db.SubmitChanges();
+            string file_name = "15.png"; //DBConnector.GetList<ImageFile>().First().FileName;
 
-                foreach (var item in db.GetTable<ImageFile>()) {
-                    Console.WriteLine(item.FileName);
-                    //db.Refresh(System.Data.Linq.RefreshMode.KeepChanges, item);
-                    item.Height++;
-                    db.Refresh(System.Data.Linq.RefreshMode.KeepChanges, item);
-                }
-                db.SubmitChanges();
-                //Console.WriteLine(file.FileName);
-                //var files = db.GetTable<ImageFile>();
-                //foreach (var file in files)
-                //{
-                //    file.Height += 1;
-                //    Console.WriteLine(file.FileName);
-                //}
-
-                //file.Height = 12;
-                //db.SubmitChanges();
-                //Console.WriteLine(file);
-            }
-            Console.ReadKey();
-
-            //for (int i=0; i < 25; i++)
-            //    for (int j=0; j <= 4096; j+=128)
-            //        for (int k = 0; k <= 256; j += 128)
-
-
-            return;
-            string file_name = DBConnector.GetList<ImageFile>().First().FileName;
             List<ImageArea> areas = DBConnector.GetList<ImageArea>().Where(area => area.FileName == file_name).ToList();
 
             var src = new Mat($"{ImagesRoot}\\{file_name}", ImreadModes.Grayscale);
             var indexer = src.GetGenericIndexer<Vec3b>();
 
-            int A = DBConnector.GetParam("A").Min + 1,
-                B = DBConnector.GetParam("B").Min, 
-                count = DBConnector.GetParam("count").Min;
+            RunExperimenets(areas, indexer, 3);
+            
+            //var exp = new Experement() { ExperimentNumber = 1, TestNubmer = 1 };
+            //MakeExperemnt(4, 3, 10, areas, exp, indexer);
+
+
+            Console.WriteLine($"все");
+            Console.ReadLine();
+        }
+
+        static void RunExperimenets(List<ImageArea> areas, Mat.Indexer<Vec3b> indexer, int exp_num = 1)
+        {
+            Param A_ = DBConnector.GetParam("Больший радиус"),
+                B_ = DBConnector.GetParam("Меньший радиус"),
+                count_ = DBConnector.GetParam("Количество точек");
+
+            A_.Max = 10;
+            B_.Max = 8;
+            count_.Max = 16;
+
+            int test_num = 1;
+            foreach (var a in A_.AsEnumerable())
+                foreach (var b in B_.AsEnumerable())
+                    foreach (var c in count_.AsEnumerable())
+                    {
+                        Console.WriteLine($"test {test_num}/{A_.count * B_.count * count_.count}");
+                        var exp = new Experement() { ExperimentNumber = exp_num, TestNubmer = test_num };
+                        DBConnector.CreateItem(exp);
+                        DBConnector.CreateList(new List<ExperimentPlan>() {
+                            new ExperimentPlan() { ExperimentNumber = exp.ExperimentNumber, TestNubmer = exp.TestNubmer, CodeParameter = A_.Code, ValueParameter = a },
+                            new ExperimentPlan() { ExperimentNumber = exp.ExperimentNumber, TestNubmer = exp.TestNubmer, CodeParameter = B_.Code, ValueParameter = b },
+                            new ExperimentPlan() { ExperimentNumber = exp.ExperimentNumber, TestNubmer = exp.TestNubmer, CodeParameter = count_.Code, ValueParameter = c },
+                        });
+                        var results = MakeExperemnt(a, b, c, areas, exp, indexer);
+                        DBConnector.CreateList(results);
+                        test_num++;
+                    }
+        }
+
+        static List<ExperimentResult> MakeExperemnt(int A, int B, int count, List<ImageArea> areas, Experement exp, Mat.Indexer<Vec3b> indexer)
+        {
+            
 
             Console.WriteLine($"{A} {B} {count}");
             var lbp = new LBPProcessor(A, B, count);
 
-            List<Histogram<uint>> histogramm_list = new List<Histogram<uint>>();
+            List<Tuple<RGBHistogramm<uint>, ImageArea>> histogramm_list = new List<Tuple<RGBHistogramm<uint>, ImageArea>>();
             foreach (ImageArea row in areas)
             {
-                //histogramm_list.Add(lbp.CalcHistogramForArea(row.X1, row.Y1, row.h, row.w, indexer));
+                histogramm_list.Add(new Tuple<RGBHistogramm<uint>, ImageArea>(lbp.CalcHistogramForArea(row.X1, row.Y1, row.h, row.w, indexer), row));
             }
 
-            foreach (Histogram<uint> histogram in histogramm_list)
+            List<ExperimentResult> results = new List<ExperimentResult>();
+
+            foreach (var histogram in histogramm_list)
             {
-                histogram.Print();
-                Console.WriteLine(histogram.Distanse(histogramm_list[10]));
+                var hist = histogram.Item1;
+                var area = histogram.Item2;
+                string defect = area.IsDefect ? "-" : "";
+                var distanseR = hist.R.Distanse(histogramm_list[1].Item1.R);
+                var distanseG = hist.G.Distanse(histogramm_list[1].Item1.G);
+                var distanseB = hist.B.Distanse(histogramm_list[1].Item1.B);
+
+                var summa = distanseR + distanseG + distanseB;
+                results.Add(new ExperimentResult() { ExperimentNumber = exp.ExperimentNumber, TestNubmer = exp.TestNubmer, IdArea = area.Id, DefectPower = summa });
+                //Console.WriteLine($"{area.X1,3}, {area.Y1,3}: {summa,3} {defect,2} {threshold,2}");
             }
-            Console.WriteLine($"все");
-            Console.ReadLine();
+            return results;
         }
     }
 }

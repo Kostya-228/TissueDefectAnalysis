@@ -16,7 +16,7 @@ namespace ConsoleApp.Models
         [Column(Name = "Высота", CanBeNull = true, UpdateCheck = UpdateCheck.Never)]
         public int Height;
         [Column(Name = "Длина", CanBeNull = true, UpdateCheck = UpdateCheck.Never)]
-        public string Width;
+        public int Width;
         [Column(Name = "Id образца", CanBeNull = true, UpdateCheck = UpdateCheck.Never)]
         public int PatternId;
     }

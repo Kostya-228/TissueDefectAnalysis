@@ -23,7 +23,7 @@ namespace ConsoleApp.Utils
                 {
                     FileName = Path.GetFileName(file_path),
                     Height = 256,
-                    Width = "4096",
+                    Width = 512,
                     PatternId = 1
                 }
             ).ToList();
@@ -41,7 +41,7 @@ namespace ConsoleApp.Utils
             foreach (var img_file in DBConnector.GetList<ImageFile>())
             {
                 for (int i = 0; i < img_file.Height; i += step)
-                    for (int j = 0; j < int.Parse(img_file.Width); j += step)
+                    for (int j = 0; j < img_file.Width; j += step)
                     {
                         var area = new ImageArea()
                         {
