@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrepareDataSet", "PrepareDa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawExperiment", "DrawExperiment\DrawExperiment.csproj", "{E669D74A-9903-4341-9764-297CB8366AB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageAll", "PackageAll\PackageAll.csproj", "{A2C70653-506B-4C08-B9EE-887A4D8635AC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{E669D74A-9903-4341-9764-297CB8366AB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E669D74A-9903-4341-9764-297CB8366AB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E669D74A-9903-4341-9764-297CB8366AB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2C70653-506B-4C08-B9EE-887A4D8635AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2C70653-506B-4C08-B9EE-887A4D8635AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2C70653-506B-4C08-B9EE-887A4D8635AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2C70653-506B-4C08-B9EE-887A4D8635AC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

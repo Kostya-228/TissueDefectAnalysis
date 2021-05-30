@@ -18,5 +18,7 @@ namespace ConsoleApp.Models
         public int Width;
         [Column(Name = "Наименование")]
         public string Name;
+        [Column(Name = "Адрес папки")]
+        public string Root;
     }
 }

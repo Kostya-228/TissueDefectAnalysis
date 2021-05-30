@@ -76,10 +76,13 @@ namespace DrawExperiment
             new Thread(() => {
                 lock (g)
                 {
+                    var file = DBConnector.GetList<ImageFile>().First(img => img.FileName == areas[0].FileName);
+                    var pattern = DBConnector.GetList<ClothPattern>().First(p => p.Id == file.PatternId);
+
                     lock (pictureBox1)
                     {
                         pictureBox1.WaitOnLoad = false;
-                        pictureBox1.Image = new Bitmap(Path.Combine(ConsoleApp.Program.ImagesRoot, areas[0].FileName));
+                        pictureBox1.Image = new Bitmap(Path.Combine(pattern.Root, areas[0].FileName));
                         //SetStatistic(results);
                         Thread.Sleep(100);
                         DrawResults(areas, results);
@@ -206,7 +209,110 @@ namespace DrawExperiment
             }).Start();
         }
 
-        public void CalcBestParams(int experement, int trashold_step = 3)
+        public void CalcBestParams(int experement)
+        {
+            //List<ExperimentResult> results;
+            //List<ImageArea> areas;
+            in_progress = true;
+
+            float max_quality = 0;
+            int optimal_treashold = 0;
+            int best_test_num = 0;
+
+
+            using (OleDbConnection connection = DBConnector.GetConnection())
+            {
+                var context = new DataContext(connection);
+                var tests = experements.Where(exp => exp.ExperimentNumber == experement).Select(exp => exp.TestNubmer);
+                foreach (int test_num in tests)
+                {
+                    // костыль, чтобы не итерироватья слишком долго )))
+                    if (test_num > 30)
+                        break;
+
+                    var test_result = CalcTest(experement, test_num, context, max_quality);
+                    if (test_result is null)
+                    {
+                        continue;
+                    }
+                    if (max_quality < test_result.Item2)
+                    {
+                        max_quality = test_result.Item2;
+                        optimal_treashold = test_result.Item1;
+                        best_test_num = test_num;
+                    }
+                    labelProgress.Invoke(new Action(() => { labelProgress.Text = $"{test_num}/{tests.Max()}"; }));
+                    //context.GetTable<Treashold>().InsertOnSubmit(new Treashold() { 
+                    //    ExperimentNumber = experement, 
+                    //    TestNubmer = test_num,
+                    //    treashold = test_result.Item1,
+                    //    Quality = test_result.Item2
+                    //});
+                    //context.SubmitChanges();
+                }
+            }
+
+            var plans = DBConnector.GetList<ExperimentPlan>().Where(ex => ex.ExperimentNumber == experement && ex.TestNubmer == best_test_num).ToList();
+            MessageBox.Show(
+                $"Лучший результат на {best_test_num} тесте, с параметрами:\n" +
+                $"Больший радиус: {plans.First(p => p.CodeParameter == "1").ValueParameter}\n" +
+                $"Меньший радиус: {plans.First(p => p.CodeParameter == "2").ValueParameter}\n" +
+                $"Количество точек радиус: {plans.First(p => p.CodeParameter == "3").ValueParameter}\n" +
+                $"Пороговое значение: {optimal_treashold}\n" +
+                $"Качество распознования: {max_quality}\n",
+                "Результаты");
+            in_progress = false;
+
+        }
+
+        public Tuple<int, float> CalcTest(int experement, int test_num, DataContext context, float global_quality, int trashold_step = 3)
+        {
+            results = context.GetTable<ExperimentResult>().Where(res =>
+                        res.ExperimentNumber == experement &&
+                        res.TestNubmer == test_num
+                    ).ToList();
+            if (results.Count == 0)
+                return null;
+
+            areas = context.GetTable<ImageArea>().Where(area => results.Select(res => res.IdArea).Contains(area.Id)).ToList();
+            var avg = (int)results.Average(res => res.DefectPower);
+            var max = (int)results.Max(res => res.DefectPower);
+
+            float max_quality = 0;
+            int optimal_treashold = 0;
+
+            for (int i = avg; i < max; i += trashold_step)
+            {
+                float value = CalcQuality(areas.ToList(), results.ToList(), i);
+                if (value > max_quality)
+                {
+                    max_quality = value;
+                    optimal_treashold = i;
+
+
+                    comboBoxTest.Invoke(new Action(() => { comboBoxTest.SelectedItem = test_num.ToString(); }));
+                    numericUpDown1.Invoke(new Action(() => { numericUpDown1.Value = i; }));
+                    labelQuality.Invoke(new Action(() => { labelQuality.Text = max_quality.ToString(); }));
+                    //SetStatistic(results);
+                    var quality = CalcQuality(areas, results, treashold);
+                    if (max_quality > global_quality)
+                        DrawResults(areas, results);
+                }
+            }
+            return new Tuple<int, float>(optimal_treashold, max_quality);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var experement = int.Parse(comboBoxExperement.SelectedItem.ToString());
+            var test = int.Parse(comboBoxTest.SelectedItem.ToString());
+            new Thread(() =>
+            {
+                CalcPorog(experement, test);
+            }).Start();
+        }
+
+        private void CalcPorog(int experement, int test_num, int trashold_step = 3)
         {
             List<ExperimentResult> results;
             List<ImageArea> areas;
@@ -214,46 +320,10 @@ namespace DrawExperiment
             using (OleDbConnection connection = DBConnector.GetConnection())
             {
                 var context = new DataContext(connection);
-
-                float max_quality = 0;
-                int optimal_treashold = 0;
-
-
                 var tests = experements.Where(exp => exp.ExperimentNumber == experement).Select(exp => exp.TestNubmer);
-                foreach (var test_num in tests)
-                {
-                    results = context.GetTable<ExperimentResult>().Where(res => 
-                        res.ExperimentNumber == experement &&
-                        res.TestNubmer == test_num
-                    ).ToList();
-                    
-                    areas = context.GetTable<ImageArea>().Where(area => results.Select(res => res.IdArea).Contains(area.Id)).ToList();
-                    var avg = (int)results.Average(res => res.DefectPower);
-                    var max = (int)results.Max(res => res.DefectPower);
-
-                    for (int i = avg; i < max; i += trashold_step)
-                    {
-                        float value = CalcQuality(areas.ToList(), results.ToList(), i);
-                        if (value > max_quality)
-                        {
-                            max_quality = value;
-                            optimal_treashold = i;
-
-
-
-                            comboBoxTest.Invoke(new Action(() => { comboBoxTest.SelectedItem = test_num.ToString(); }));
-                            numericUpDown1.Invoke(new Action(() => { numericUpDown1.Value = i; }));
-                            labelQuality.Invoke(new Action(() => { labelQuality.Text = max_quality.ToString(); }));
-                            //SetStatistic(results);
-                            var quality = CalcQuality(areas, results, treashold);
-                            DrawResults(areas, results);
-                        }
-                    }
-                    labelProgress.Invoke(new Action(() => { labelProgress.Text = $"{test_num}/{tests.Max()}"; }));
-                }
+                CalcTest(experement, test_num, context, 0);
             }
             in_progress = false;
-
         }
     }
 }

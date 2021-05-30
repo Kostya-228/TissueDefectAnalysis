@@ -71,7 +71,7 @@ namespace ConsoleApp
                     }
         }
 
-        static List<ExperimentResult> MakeExperemnt(int A, int B, int count, List<ImageArea> areas, Experement exp, Mat.Indexer<Vec3b> indexer)
+        public static List<ExperimentResult> MakeExperemnt(int A, int B, int count, List<ImageArea> areas, Experement exp, Mat.Indexer<Vec3b> indexer)
         {
             
 

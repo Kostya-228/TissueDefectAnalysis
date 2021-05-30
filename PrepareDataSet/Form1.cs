@@ -139,9 +139,8 @@ namespace PrepareDataSet
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            imgs = DBConnector.GetList<ImageFile>();
-            label1.Text = DBConnector.conn_str;
-            comboBox1.Items.AddRange(imgs.Select(img => (object)img.FileName).ToArray());
+            this.comboBox1.Enabled = false;
+            this.comboBox2.Items.AddRange(DBConnector.GetList<ClothPattern>().Select(p => p.Name).ToArray());
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -150,7 +149,8 @@ namespace PrepareDataSet
                 Save();
             cur_img = imgs.Where(img => img.FileName == (string)comboBox1.SelectedItem).First();
             pictureBox1.WaitOnLoad = false;
-            pictureBox1.Image = new Bitmap(Path.Combine(ConsoleApp.Program.ImagesRoot, cur_img.FileName));
+            string path = Path.Combine(DBConnector.GetList<ClothPattern>().First(p => p.Name == (string)comboBox2.SelectedItem).Root, cur_img.FileName);
+            pictureBox1.Image = new Bitmap(path);
             label1.Text = cur_img.FileName;
             areas = DBConnector.GetList<ImageArea>().Where(area => area.FileName == cur_img.FileName).ToList();
 
@@ -161,6 +161,71 @@ namespace PrepareDataSet
                     g.DrawRectangle(area.IsDefect ? Pens.Red : Pens.Green, ConvertImgToPicBox(area));
                 }
             }).Start();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.comboBox1.Enabled = true;
+
+            string name = ShowDialog("Создание нового образца", "введите название нового образца ткани");
+            var fbd = new FolderBrowserDialog();
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                var pattern = new ClothPattern() { 
+                    Id = DBConnector.GetList<ClothPattern>().Max(p => p.Id) + 1,
+                    Name = name,
+                    Width = 4096,
+                    Height = 256,
+                    Root = fbd.SelectedPath
+                };
+                DBConnector.CreateItem(pattern);
+
+                // сохраняем изображения из папки
+                ConsoleApp.Utils.DataSetDBPreparing.SaveImgsFromFolderToDB(fbd.SelectedPath, pattern.Id);
+
+                // нарезаем области на изоражении и сохраняем в базу
+                ConsoleApp.Utils.DataSetDBPreparing.SaveAreasFromImages(pattern.Id, 32);
+
+                imgs = DBConnector.GetList<ImageFile>();
+                label1.Text = DBConnector.conn_str;
+                comboBox2.Items.Add(name);
+                comboBox2.SelectedItem = name;
+                //comboBox1.Items.AddRange(imgs.Where(img => img.PatternId == pattern.Id).Select(img => (object)img.FileName).ToArray());
+            }
+        }
+
+        public static string ShowDialog(string text, string caption)
+        {
+            Form prompt = new Form()
+            {
+                Width = 500,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = caption,
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            Label textLabel = new Label() { Left = 50, Top = 20, Text = text };
+            TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 400 };
+            Button confirmation = new Button() { Text = "Ok", Left = 350, Width = 100, Top = 70, DialogResult = DialogResult.OK };
+            confirmation.Click += (sender, e) => { prompt.Close(); };
+            prompt.Controls.Add(textBox);
+            prompt.Controls.Add(confirmation);
+            prompt.Controls.Add(textLabel);
+            prompt.AcceptButton = confirmation;
+
+            if (prompt.ShowDialog() == DialogResult.OK && textBox.Text != String.Empty)
+                return textBox.Text;
+            throw new Exception("не выбрано название");
+        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var pattern = DBConnector.GetList<ClothPattern>().First(p => p.Name == (string)comboBox2.SelectedItem);
+            imgs = DBConnector.GetList<ImageFile>();
+            label1.Text = DBConnector.conn_str;
+            comboBox1.Items.Clear();
+            comboBox1.Items.AddRange(imgs.Where(img => img.PatternId == pattern.Id).Select(img => (object)img.FileName).ToArray());
+            comboBox1.Enabled = true;
         }
     }
 }
